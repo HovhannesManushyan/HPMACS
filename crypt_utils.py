@@ -1,7 +1,5 @@
-import pandas as pd
 import string
 import random
-import pickle
 import numpy as np
 
 def encrypt(plaintext,key):
@@ -75,3 +73,36 @@ def transify(str1,str2):
         trans[ord(j)]=ord(i)
 
     return trans
+
+
+def isconsistent(assignment,pattern, word):
+    
+    for i,j in zip(pattern,word):
+        if ord(i) in assignment:
+            if assignment[ord(i)]!=ord(j):
+                return False
+        elif ord(j) in assignment.values():
+            return False
+            
+    return True
+
+def get_assignment(word1,word2):
+    trans = dict()
+    for i,j in zip(word1,word2):
+        if i not in trans:
+            trans[ord(i)]=ord(j)
+    return trans
+
+
+def assignment_trans(assignment):
+    
+    vl = set(assignment.values())
+    ks = set(assignment.keys())
+    
+    fxu = list(ks - vl)
+    fxl = list(vl - ks)
+    
+    for i,j in zip(fxu,fxl):
+        assignment[j]=i
+
+    return assignment
