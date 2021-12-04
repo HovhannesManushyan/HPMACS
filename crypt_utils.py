@@ -1,6 +1,7 @@
 import string
 import random
 import numpy as np
+from collections import OrderedDict
 
 def encrypt(plaintext,key):
     trans = plaintext.maketrans(key,string.ascii_lowercase)
@@ -106,3 +107,72 @@ def assignment_trans(assignment):
         assignment[j]=i
 
     return assignment
+
+
+def get_score(charseq, ngram_probs, word_frequency):
+    totprob = 0
+    words = charseq.split(" ")
+    sz = len(list(ngram_probs.keys())[0])
+    eps = np.log(1e-9)
+
+    for i in words:
+        if i in word_frequency:
+            totprob += np.log(word_frequency[i])
+        else:
+            totprob += eps
+
+    for i in range(len(charseq)-sz+1):
+        cprob = ngram_probs.get(charseq[i:i+sz],0)
+        if cprob == 0:
+            totprob += eps
+        else:
+            totprob += np.log(cprob)
+
+    return totprob
+
+
+def gen_ordered_dict(a,b):
+
+    foc_dict = dict()
+    mp_dict = OrderedDict()
+    for index,key in enumerate(a):
+        if key not in mp_dict:
+            foc_dict[key]=index
+
+    for index, key in enumerate(b):
+        if key in foc_dict:
+            if foc_dict[key] in mp_dict:
+                mp_dict[foc_dict[key]].append(index)
+            else:
+                mp_dict[foc_dict[key]]=[index]
+    return mp_dict
+
+def check_consistency(word1,word2, ord_dict):
+    for i,j in ord_dict.items():
+        for c in j:
+            if word1[i]!=word2[c]:
+                return False
+
+    return True
+
+def revise(word1,word2,domain):
+
+    ord_dict = gen_ordered_dict(word1,word2)
+    
+    rm_set = set()
+    revised = False
+    for i in domain[word1]:
+        tmp = False
+
+        for j in domain[word2]:
+            if check_consistency(i,j,ord_dict):
+                tmp=True
+                break
+
+        if tmp==False:
+            rm_set.add(i)
+            revised = True
+
+    domain[word1] = domain[word1]-rm_set
+
+    return revised   
