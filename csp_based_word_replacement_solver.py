@@ -78,28 +78,31 @@ def solver(cipher, word_dict, ngram_probs):
     partial_solutions=[]
     
     que = []
-    que.append((0,{}))
-    while len(que)!=0:
-        
-        index, assignment = que.pop()
-        if index >= len(word_seq):
-            cor_assign = assignment_trans(assignment)
-            sol = cipher.translate(cor_assign)
-            solutions.append((sol, get_score(sol,ngram_probs,word_freq)))
-        else:
-            values = word_dict[paternify(word_seq[index])]
-            was_assign = False
-            for sub_word in values:
-
-                if isconsistent(assignment,word_seq[index],sub_word):
-                    cassignment = dict()
-                    cassignment.update(assignment)
-                    cassignment.update(get_assignment(word_seq[index],sub_word))
-                    que.append((index+1,cassignment))
-                    was_assign=True
-            if was_assign==False:
+    try:
+        que.append((0,{}))
+        while len(que)!=0:
+            
+            index, assignment = que.pop()
+            if index >= len(word_seq):
                 cor_assign = assignment_trans(assignment)
-                partial_solutions.append(cipher.translate(cor_assign))
+                sol = cipher.translate(cor_assign)
+                solutions.append((sol, get_score(sol,ngram_probs,word_freq)))
+            else:
+                values = word_dict[paternify(word_seq[index])]
+                was_assign = False
+                for sub_word in values:
+
+                    if isconsistent(assignment,word_seq[index],sub_word):
+                        cassignment = dict()
+                        cassignment.update(assignment)
+                        cassignment.update(get_assignment(word_seq[index],sub_word))
+                        que.append((index+1,cassignment))
+                        was_assign=True
+                if was_assign==False:
+                    cor_assign = assignment_trans(assignment)
+                    partial_solutions.append(cipher.translate(cor_assign))
+    except:
+        return -float("inf")
     if len(solutions) == 0:
         return -float("inf")
     else:
