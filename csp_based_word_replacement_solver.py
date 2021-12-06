@@ -101,7 +101,6 @@ def solver(cipher, word_dict, ngram_probs):
             if was_assign==False:
                 cor_assign = assignment_trans(assignment)
                 partial_solutions.append(cipher.translate(cor_assign))
-    #print(sorted(solutions,key=lambda x: x[1])[-1])
     if len(solutions) == 0:
         return -float("inf")
     else:
