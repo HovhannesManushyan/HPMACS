@@ -31,7 +31,6 @@ actual_key = "badcfehgjilkonmrqputsxwvzy"
 plaintext = "world and most important depth technology science"
 # plaintext = "fly can fly mosqito can mosqito"
 cipher = encrypt(plaintext,actual_key)
-print(cipher)
 
 def ac3_solver(cipher, word_dict):
 
