@@ -70,7 +70,6 @@ def ac3_solver(cipher, word_dict):
 
 res_domain=ac3_solver(cipher,word_dict)
     
-print(res_domain)
 
 def solver(cipher, word_dict, ngram_probs):
     key = string.ascii_lowercase
