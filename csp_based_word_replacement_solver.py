@@ -31,7 +31,7 @@ actual_key = "badcfehgjilkonmrqputsxwvzy"
 plaintext = "world and most important depth technology science"
 # plaintext = "fly can fly mosqito can mosqito"
 cipher = encrypt(plaintext,actual_key)
-
+print(cipher)
 
 def ac3_solver(cipher, word_dict):
 
@@ -101,7 +101,7 @@ def solver(cipher, word_dict, ngram_probs):
             if was_assign==False:
                 cor_assign = assignment_trans(assignment)
                 partial_solutions.append(cipher.translate(cor_assign))
-    print(sorted(solutions,key=lambda x: x[1])[-1])
+    #print(sorted(solutions,key=lambda x: x[1])[-1])
     if len(solutions) == 0:
         return -float("inf")
     else:
