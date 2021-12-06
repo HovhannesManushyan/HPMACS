@@ -7,9 +7,9 @@ from crypt_utils import *
 from collections import deque
 
 
-with open("ngram_data/word_dict.pickle","rb") as f:
+with open("ngram_data/word_dictv2.pickle","rb") as f:
     word_dict = pickle.load(f)
-with open("ngram_data/word_prob_dict.pickle","rb") as f:
+with open("ngram_data/word_prob_dictv2.pickle","rb") as f:
     word_prob_dict = pickle.load(f)
 
 
@@ -27,9 +27,9 @@ with open("ngram_data/5gram_probs.pickle", "rb") as f:
 # hard cipher emv qsjdl apmwn isoru mxfp kbyz cmh tgf
 actual_key = "badcfehgjilkonmrqputsxwvzy"
 # plaintext =  "quick brown jumps over lazy fox dog the"
-plaintext = "sentence that definitely has a unique solution"
-# plaintext = "world and most important depth technology science"
-# plaintext = "toy soy"
+# plaintext = "sentence that definitely has a unique solution"
+plaintext = "world and most important depth technology science"
+# plaintext = "fly can fly mosqito can mosqito"
 cipher = encrypt(plaintext,actual_key)
 
 
@@ -70,7 +70,7 @@ def ac3_solver(cipher, word_dict):
 
 res_domain=ac3_solver(cipher,word_dict)
     
-
+print(res_domain)
 
 def solver(cipher, word_dict, ngram_probs):
     key = string.ascii_lowercase
@@ -102,10 +102,14 @@ def solver(cipher, word_dict, ngram_probs):
             if was_assign==False:
                 cor_assign = assignment_trans(assignment)
                 partial_solutions.append(cipher.translate(cor_assign))
-    
-    return (solutions,partial_solutions)
+    print(sorted(solutions,key=lambda x: x[1])[-1])
+    if len(solutions) == 0:
+        return -float("inf")
+    else:
+        return max([i[1] for i in solutions])
 
 
-print(solver(cipher,res_domain,fivegramprobs))
+if __name__=="__main__":
+    print(solver(cipher,res_domain,fivegramprobs))
 
 
