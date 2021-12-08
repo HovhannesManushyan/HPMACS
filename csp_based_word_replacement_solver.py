@@ -24,13 +24,6 @@ with open("ngram_data/5gram_probs.pickle", "rb") as f:
     fivegramprobs = pickle.load(f)
      
 
-# hard cipher emv qsjdl apmwn isoru mxfp kbyz cmh tgf
-actual_key = "badcfehgjilkonmrqputsxwvzy"
-# plaintext =  "quick brown jumps over lazy fox dog the"
-# plaintext = "sentence that definitely has a unique solution"
-plaintext = "world and most important depth technology science"
-# plaintext = "fly can fly mosqito can mosqito"
-cipher = encrypt(plaintext,actual_key)
 
 def ac3_solver(cipher, word_dict):
 
@@ -41,10 +34,14 @@ def ac3_solver(cipher, word_dict):
     queue = deque()
 
     for i in range(len(word_seq)):
-        domain[word_seq[i]] = set(word_dict[paternify(word_seq[i])])
-        for j in range(len(word_seq)):
-            if(i!=j):
-                queue.append((i,j))
+        cpattern = paternify(word_seq[i])
+        if cpattern in word_dict:
+            domain[word_seq[i]] = set(word_dict[cpattern])
+            for j in range(len(word_seq)):
+                if(i!=j):
+                    queue.append((i,j))
+        else:
+            return None
 
     
 
@@ -67,42 +64,39 @@ def ac3_solver(cipher, word_dict):
             wd_out[tmp]=domain[i]
     return wd_out
 
-res_domain=ac3_solver(cipher,word_dict)
     
 
 def solver(cipher, word_dict, ngram_probs):
-    key = string.ascii_lowercase
     word_seq = cipher.split(" ")
     
     solutions = []
     partial_solutions=[]
     
     que = []
-    try:
-        que.append((0,{}))
-        while len(que)!=0:
-            
-            index, assignment = que.pop()
-            if index >= len(word_seq):
-                cor_assign = assignment_trans(assignment)
-                sol = cipher.translate(cor_assign)
-                solutions.append((sol, get_score(sol,ngram_probs,word_freq)))
-            else:
-                values = word_dict[paternify(word_seq[index])]
-                was_assign = False
-                for sub_word in values:
+    que.append((0,{}))
+    while len(que)!=0:
+        
+        index, assignment = que.pop()
+        if index >= len(word_seq):
+            cor_assign = assignment_trans(assignment)
+            sol = cipher.translate(cor_assign)
+            solutions.append((sol, get_score(sol,ngram_probs,word_freq)))
+        else:
+            values = word_dict[paternify(word_seq[index])]
+            was_assign = False
+            for sub_word in values:
 
-                    if isconsistent(assignment,word_seq[index],sub_word):
-                        cassignment = dict()
-                        cassignment.update(assignment)
-                        cassignment.update(get_assignment(word_seq[index],sub_word))
-                        que.append((index+1,cassignment))
-                        was_assign=True
-                if was_assign==False:
-                    cor_assign = assignment_trans(assignment)
-                    partial_solutions.append(cipher.translate(cor_assign))
-    except:
-        return -float("inf")
+                if isconsistent(assignment,word_seq[index],sub_word):
+                    cassignment = dict()
+                    cassignment.update(assignment)
+                    cassignment.update(get_assignment(word_seq[index],sub_word))
+                    que.append((index+1,cassignment))
+                    was_assign=True
+            if was_assign==False:
+                cor_assign = assignment_trans(assignment)
+                partial_solutions.append(cipher.translate(cor_assign))
+
+
     if len(solutions) == 0:
         return -float("inf")
     else:
@@ -110,6 +104,21 @@ def solver(cipher, word_dict, ngram_probs):
 
 
 if __name__=="__main__":
-    print(solver(cipher,res_domain,fivegramprobs))
+    # hard cipher emv qsjdl apmwn isoru mxfp kbyz cmh tgf
+    actual_key = "badcfehgjilkonmrqputsxwvzy"
+    # plaintext =  "quick brown jumps over lazy fox dog the"
+    # plaintext = "sentence that definitely has a unique solution"
+    plaintext = "world and most important depth technology science"
+    # plaintext = "fly can fly mosqito can mosqito"
+    # cipher = encrypt(plaintext,actual_key)
+    cipher="wmpkcb ncomut j o rmptbn tcf rtgtfdgnm kmhzudjfnd f"
+
+
+    res_domain = ac3_solver(cipher,word_dict)
+    if res_domain != None:
+        print(solver(cipher,res_domain,fivegramprobs))
+    else:
+        print(-float("inf"))
+
 
 
