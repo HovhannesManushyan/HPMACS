@@ -175,4 +175,4 @@ def revise(word1,word2,domain):
 
     domain[word1] = domain[word1]-rm_set
 
-    return revised   
+    return revised  

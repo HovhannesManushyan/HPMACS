@@ -5,7 +5,7 @@ import pickle
 import numpy as np
 from crypt_utils import *
 from collections import deque
-
+import copy
 
 with open("ngram_data/word_dictv2.pickle","rb") as f:
     word_dict = pickle.load(f)
@@ -64,7 +64,66 @@ def ac3_solver(cipher, word_dict):
             wd_out[tmp]=domain[i]
     return wd_out
 
+def fc_solver(cipher, word_dict, ngram_probs):
+    word_seq = cipher.split(" ")
     
+    solutions = []
+    partial_solutions=[]
+    word_dict_seq=[]
+    que = []
+    que.append((0,{}))
+    word_dict_seq.append(copy.deepcopy(word_dict))
+    while len(que)!=0:
+        
+        index, assignment = que.pop()
+
+        if index >= len(word_seq):
+            cor_assign = assignment_trans(assignment)
+            sol = cipher.translate(cor_assign)
+            solutions.append((sol, get_score(sol,ngram_probs,word_freq)))
+            print(sol)
+        else:
+            # print(word_dict_seq, index)
+            cword_dict = word_dict_seq[index]
+            values = cword_dict[paternify(word_seq[index])]
+            was_assign = False
+            for sub_word in values:
+
+                if isconsistent(assignment,word_seq[index],sub_word):
+                    cassignment = dict()
+                    cassignment.update(assignment)
+                    cassignment.update(get_assignment(word_seq[index],sub_word))
+                    
+                    broke = False
+                    for i in range(index+1,len(word_seq)):
+                        cword = word_seq[i]
+                        csubs = cword_dict[paternify(cword)]
+
+                        patrn = [i for i in csubs if isconsistent(cassignment, cword, i)]
+                        if len(patrn)==0:
+                            broke = True
+                            break
+
+                    if broke == False:
+                        was_assign=True
+                        cword_dict_copy = copy.deepcopy(cword_dict)
+                        cword_dict_copy[paternify(cword)]=[i for i in csubs if isconsistent(cassignment, cword, i)]
+                        word_dict_seq.append(cword_dict_copy)
+                        que.append((index+1,cassignment))
+
+
+                    
+            if was_assign==False:
+                cor_assign = assignment_trans(assignment)
+                partial_solutions.append(cipher.translate(cor_assign))
+                print(cipher.translate(cor_assign))
+
+
+    if len(solutions) == 0:
+        return -float("inf")
+    else:
+        return max([i[1] for i in solutions])
+
 
 def solver(cipher, word_dict, ngram_probs):
     word_seq = cipher.split(" ")
@@ -81,6 +140,7 @@ def solver(cipher, word_dict, ngram_probs):
             cor_assign = assignment_trans(assignment)
             sol = cipher.translate(cor_assign)
             solutions.append((sol, get_score(sol,ngram_probs,word_freq)))
+            print(sol)
         else:
             values = word_dict[paternify(word_seq[index])]
             was_assign = False
@@ -104,14 +164,10 @@ def solver(cipher, word_dict, ngram_probs):
 
 
 if __name__=="__main__":
-    # hard cipher emv qsjdl apmwn isoru mxfp kbyz cmh tgf
     actual_key = "badcfehgjilkonmrqputsxwvzy"
-    # plaintext =  "quick brown jumps over lazy fox dog the"
-    # plaintext = "sentence that definitely has a unique solution"
-    plaintext = "world and most important depth technology science"
-    # plaintext = "fly can fly mosqito can mosqito"
-    # cipher = encrypt(plaintext,actual_key)
-    cipher="wmpkcb ncomut j o rmptbn tcf rtgtfdgnm kmhzudjfnd f"
+    plaintext = "sentence that definitely has a unique solution"
+    # plaintext = "world and most important depth technology science"
+    cipher = encrypt(plaintext,actual_key)
 
 
     res_domain = ac3_solver(cipher,word_dict)
