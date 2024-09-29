@@ -1,64 +1,129 @@
 import string
-import random
 import numpy as np
 from collections import OrderedDict
 
-def encrypt(plaintext,key):
-    trans = plaintext.maketrans(key,string.ascii_lowercase)
+def encrypt(plaintext, key):
+    """
+    Encrypt plaintext using a substitution cipher with the given key.
+
+    Parameters:
+    - plaintext (str): The message to encrypt.
+    - key (str): A 26-character string representing the substitution key where
+                 key[i] is the cipher letter for plaintext letter 'a' + i.
+
+    Returns:
+    - cipher (str): The encrypted message.
+    """
+    trans = str.maketrans(string.ascii_lowercase, key)
     cipher = plaintext.translate(trans)
     return cipher
 
-def decrypt(ciphertext,key):
-    trans = ciphertext.maketrans(string.ascii_lowercase,key)
-    cipher = ciphertext.translate(trans)
-    return cipher
+def decrypt(ciphertext, key):
+    """
+    Decrypt ciphertext using a substitution cipher with the given key.
+
+    Parameters:
+    - ciphertext (str): The message to decrypt.
+    - key (str): A 26-character string representing the substitution key where
+                 key[i] is the cipher letter for plaintext letter 'a' + i.
+
+    Returns:
+    - plaintext (str): The decrypted message.
+    """
+    trans = str.maketrans(key, string.ascii_lowercase)
+    plaintext = ciphertext.translate(trans)
+    return plaintext
 
 def paternify(instr):
+    """
+    Generates a pattern string for the input word. Each unique letter is assigned
+    a unique lowercase letter starting from 'a'.
+
+    Parameters:
+    - instr (str): The input word.
+
+    Returns:
+    - pattern (str): The pattern string.
+    """
     ht = dict()
     pattern = ""
-    cnt = 97
-    for i in instr:
+    cnt = 97  # ASCII value for 'a'
+    for i in instr.lower():
         if i in ht:
-            pattern = pattern + ht[i]
+            pattern += ht[i]
         else:
-            pattern = pattern + chr(cnt)
-            ht[i]=chr(cnt)
-            cnt = cnt + 1
+            pattern += chr(cnt)
+            ht[i] = chr(cnt)
+            cnt += 1
     return pattern
 
-def bigram_score(instring,bigram):
-    prob = None
-    for i,j in zip(instring, instring[1:]):
-        if i+j in bigram:
-            if prob==None:
-                prob = np.log(bigram[i+j])
-            else:
-                prob=prob + np.log(bigram[i+j])
-        
-    return prob
+def isconsistent(assignment, cipher_word, plain_word):
+    """
+    Checks if the current assignment is consistent with mapping cipher_word to plain_word.
 
-def trigram_score(instring,trigram):
-    prob = None
-    for i,j,z in zip(instring, instring[1:],instring[2:]):
-        if i+j+z in trigram:
-            if prob==None:
-                prob = np.log(trigram[i+j+z])
-            else:
-                prob=prob + np.log(trigram[i+j+z])
-        
-    return prob
+    Parameters:
+    - assignment (dict): Current mapping from cipher letter ordinals to plain letter ordinals.
+    - cipher_word (str): The cipher word.
+    - plain_word (str): The candidate plain word.
 
-def word_score(instring,word_freq):
-    oov_score = np.log(10**(-10))
-    words = instring.split(" ")
-    prob = 0
-    for i in words:
-        if i in word_freq:
-            prob += np.log(word_freq[i])
+    Returns:
+    - bool: True if consistent, False otherwise.
+    """
+    for c, p in zip(cipher_word.lower(), plain_word.lower()):
+        c_ord = ord(c)
+        p_ord = ord(p)
+        if c_ord in assignment:
+            if assignment[c_ord] != p_ord:
+                return False
+        elif p_ord in assignment.values():
+            return False
+    return True
+
+def get_assignment(cipher_word, plain_word):
+    """
+    Generates a mapping from cipher letters to plain letters based on the word pair.
+
+    Parameters:
+    - cipher_word (str): The cipher word.
+    - plain_word (str): The candidate plain word.
+
+    Returns:
+    - dict: Mapping from cipher letter ordinals to plain letter ordinals.
+    """
+    trans = dict()
+    for c, p in zip(cipher_word.lower(), plain_word.lower()):
+        c_ord = ord(c)
+        p_ord = ord(p)
+        trans[c_ord] = p_ord
+    return trans
+
+def build_key_from_mapping(mapping):
+    """
+    Build the key string for decryption from cipher_ord to plain_ord mapping.
+
+    Parameters:
+    - mapping (dict): Mapping from cipher letter ord to plain letter ord.
+
+    Returns:
+    - key_str (str): 26-character key string where key[i] is the plain letter for 'a' + i.
+                      Unmapped letters are represented by '_'.
+    """
+    key = ['_'] * 26  # Initialize with '_' for unmapped letters
+    reverse_mapping = {}
+    for cipher_ord, plain_ord in mapping.items():
+        plain_char = chr(plain_ord)
+        cipher_char = chr(cipher_ord)
+        reverse_mapping[plain_char] = cipher_char
+
+    for i in range(26):
+        plain_char = chr(ord('a') + i)
+        if plain_char in reverse_mapping:
+            key[i] = reverse_mapping[plain_char]
         else:
-            prob += oov_score
-            
-    return prob
+            key[i] = '_'  # Use '_' for unmapped letters
+
+    return ''.join(key)
+
 
 def transify(str1,str2):
     trans = dict()
